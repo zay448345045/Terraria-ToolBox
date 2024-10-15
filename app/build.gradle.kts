@@ -17,6 +17,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk {
+            //noinspection ChromeOsAbiSupport
             abiFilters += listOf("arm64-v8a")
         }
     }
@@ -46,7 +47,7 @@ android {
         pickFirst("**/libshadowhook.so")
     }
 
-    ndkVersion = "27.1.12297006"
+    ndkVersion = "28.0.12433566 rc1"
 
     aaptOptions {
         noCompress.add("assets/bin/Data/data.unity3d")
@@ -62,7 +63,6 @@ dependencies{
     implementation(project(":game-assets"))
     implementation(libs.commonmark)
     implementation(libs.shadowhook)
-    implementation(project(":apkzlib"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -74,7 +74,7 @@ dependencies{
     implementation(libs.androidx.ui.android)
     implementation(libs.androidx.core.ktx.v1130)
     implementation(libs.androidx.activity)
-    implementation(files("libs/classes.jar"))
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
     implementation(libs.androidx.lifecycle.service)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

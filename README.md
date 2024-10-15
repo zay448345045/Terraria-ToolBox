@@ -5,7 +5,7 @@
 * [English 👈](https://github.com/2079541547/Terraria-ToolBox/blob/main/README-en.md)
 * [为项目做出贡献](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=4_FgF6B2vAHURKYQeM-iU3hgXgLa5yao&authKey=uVaNXW3raKeD3M6lx9RryVaH0xC6hRsxfklNoYYB1FMIeOLlEChlrfD%2FbW9TsRkC&noverify=0&group_code=960014110)
 * 群答案：silkways
-* 兼容安卓9—14
+* 兼容安卓7—14
 
 # 使用的项目
 
@@ -22,7 +22,6 @@
 
 # 原理
 
-* 资源加载使用iohook（LsPatch）
 * 模组使用BNM挂钩
 
 # **多语言支持**

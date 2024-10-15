@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
 import android.view.LayoutInflater
@@ -14,9 +15,10 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.snackbar.Snackbar
 import silkways.terraria.efmodloader.R
 import silkways.terraria.efmodloader.databinding.MainFragmentManageBinding
-import silkways.terraria.efmodloader.logic.mod.ModJsonManager
+import silkways.terraria.efmodloader.logic.mod.ModInstaller
 import silkways.terraria.efmodloader.ui.fragment.main.toolbox.logic.FileItem
 import java.io.File
 import java.io.FileInputStream
@@ -67,6 +69,14 @@ class ManageFragment: Fragment() {
             selectModFiles()
         }
 
+        binding.installRes.setOnClickListener {
+            Snackbar.make(it, "真的在写辣QAQ", Snackbar.LENGTH_SHORT).show()
+        }
+
+        binding.resManager.setOnClickListener {
+            Snackbar.make(it, "真的再写了QWQ", Snackbar.LENGTH_SHORT).show()
+        }
+
 
 
 
@@ -111,7 +121,7 @@ class ManageFragment: Fragment() {
                     val destinationPath = "$rootDirectory/"
 
                     if (file1 != null) {
-                        ModJsonManager.moveFileAndUpdateConfig(requireActivity(), file1, destinationPath, file2)
+                        ModInstaller.moveFileAndUpdateConfig(requireActivity(), file1, destinationPath, file2)
                     }
 
                 }
@@ -144,13 +154,7 @@ class ManageFragment: Fragment() {
     }
 
     private fun selectModFiles() {
-        val intent = Intent(Intent.ACTION_GET_CONTENT)
-        intent.addCategory(Intent.CATEGORY_OPENABLE)
-        // 设置 MIME 类型为所有文件类型
-        intent.type = "*/*"
-        // 允许多个文件选择
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-        selectFilesLauncher.launch(intent.toString())
+        selectFilesLauncher.launch("*/*")
     }
 
 

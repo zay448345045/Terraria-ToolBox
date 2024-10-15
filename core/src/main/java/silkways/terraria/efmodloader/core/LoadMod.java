@@ -1,5 +1,6 @@
 package silkways.terraria.efmodloader.core;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
 
@@ -14,10 +15,14 @@ import java.util.Objects;
 
 public class LoadMod {
 
-    public void LoadMian(Context context){
+    @SuppressLint("UnsafeDynamicallyLoadedCode")
+    public void LoadMian(Context context, Boolean isC , String path){
         loadHook();
-        System.loadLibrary("Major");
-        readFileContent(context);
+        if (isC) {
+            System.load(path);
+        } else {
+            System.loadLibrary("TEFModLoader");
+        }
     }
 
     public void loadHook(){
@@ -26,20 +31,6 @@ public class LoadMod {
                 .build());
     }
 
-    public static String readFileContent(Context context) {
-        File file = new File(Objects.requireNonNull(context.getExternalFilesDir(null)).getAbsolutePath() + "/ToolBoxData/ModData/mod_data.json");
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append("\n");
-            }
-            return sb.toString();
-        } catch (IOException e) {
-            Log.e("TAG", "Error reading file: ", e);
-            return "";
-        }
-    }
 
-    public native void getJsonContent(String content);
+
 }

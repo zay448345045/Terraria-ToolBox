@@ -22,19 +22,17 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.materialswitch.MaterialSwitch
-import org.json.JSONObject
+import eternal.future.effsystem.fileSystem
 import silkways.terraria.efmodloader.R
 import silkways.terraria.efmodloader.databinding.ManageEfmodresDialogBinding
 import silkways.terraria.efmodloader.databinding.ManageEfmodsettingDialogBinding
 import silkways.terraria.efmodloader.logic.JsonConfigModifier
 import silkways.terraria.efmodloader.logic.mod.ModManager
 import java.io.File
-import java.io.InputStream
-import java.util.zip.ZipFile
+import eternal.future.effsystem.fileSystem.EFMC
 
 data class ModInfo(
     val filePath: String,
-    val runtime: String,
     val identifier: String,
     val modName: String,
     val author: String,
@@ -46,40 +44,31 @@ data class ModInfo(
     var icon: Bitmap? = null
 )
 
-fun loadModsFromDirectory(directoryPath: String, context: Context): List<ModInfo> {
+fun loadModsFromDirectory(directoryPath: String): List<ModInfo> {
     val directory = File(directoryPath)
     val mods = mutableListOf<ModInfo>()
 
     if (directory.exists() && directory.isDirectory) {
         for (file in directory.listFiles()) {
             if (file.isFile && file.extension != "json") {
-                ZipFile(file).use { zip ->
-                    val infoEntry = zip.getEntry("info.json")
-                    val iconEntry = zip.getEntry("icon.png")
 
-                    if (infoEntry != null && iconEntry != null) {
-                        val infoInputStream: InputStream = zip.getInputStream(infoEntry)
-                        val jsonString = infoInputStream.bufferedReader().use { it.readText() }
-                        val json = JSONObject(jsonString)
-                        val info = ModInfo(
-                            filePath = file.absolutePath,
-                            runtime = json.getString("Runtime"),
-                            identifier = json.getString("Identifier"),
-                            modName = json.getString("ModName"),
-                            author = json.getString("Author"),
-                            introduce = json.getString("Introduce"),
-                            version = json.getString("Version"),
-                            openSource = json.getBoolean("OpenSource"),
-                            openSourceUrl = json.getString("OpenSourceUrl"),
-                            customizePage = json.getBoolean("CustomizePage")
-                        )
+                val Infomap = EFMC.getModInfo(file.absolutePath)
+                val ModIcon = EFMC.getModIcon(file.absolutePath)
 
-                        val iconInputStream: InputStream = zip.getInputStream(iconEntry)
-                        info.icon = BitmapFactory.decodeStream(iconInputStream)
+                val info = ModInfo(
+                    filePath = file.absolutePath,
+                    identifier = Infomap["identifier"].toString(),
+                    modName = Infomap["modName"].toString(),
+                    author = Infomap["author"].toString(),
+                    introduce = Infomap["introduce"].toString(),
+                    version = Infomap["version"].toString(),
+                    openSource = Infomap["openSource"] as Boolean,
+                    openSourceUrl = Infomap["openSourceUrl"].toString(),
+                    customizePage = Infomap["customizePage"] as Boolean
+                )
 
-                        mods.add(info)
-                    }
-                }
+                info.icon = BitmapFactory.decodeByteArray(ModIcon, 0, ModIcon.size)
+                mods.add(info)
             }
         }
     }
@@ -160,7 +149,8 @@ class ModsAdapter(private val mods: List<ModInfo>, private val context: Context)
         val modCacheDir = File(cacheDir, "EFMOD_WEB")
         modCacheDir.mkdirs()
 
-        extractPageFolder(mod.filePath, modCacheDir)
+
+        fileSystem.EFMC.extractPage(mod.filePath, modCacheDir.absolutePath)
 
         // 使用FileProvider获取文件URI
         val mainHtmlFile = File(modCacheDir, "main.html")
@@ -171,7 +161,7 @@ class ModsAdapter(private val mods: List<ModInfo>, private val context: Context)
             putString("Title", mod.modName)
             putString("Url", uri.toString())
             putString("modCacheDir", modCacheDir.toString())
-            putString("private", "${context.getExternalFilesDir(null)}/EFMod-Private/${mod.runtime}/${mod.identifier}/")
+            putString("private", "${context.getExternalFilesDir(null)}/EFMod-Private/${mod.identifier}/")
         }
 
         navController.navigate(R.id.nanavigation_EFModWeb, bundle, navOptions)
@@ -198,7 +188,6 @@ class ModsAdapter(private val mods: List<ModInfo>, private val context: Context)
                 val messageBuilder = StringBuilder()
                 messageBuilder.append("${context.getString(R.string.author_text)} ${mod.author}\n")
                 messageBuilder.append("${context.getString(R.string.build_text)} ${mod.version}\n")
-                messageBuilder.append("${context.getString(R.string.ModRuntime)} ${mod.runtime}\n")
                 messageBuilder.append("${context.getString(R.string.modIntroduce_text)} ${mod.introduce}\n")
 
                 dialogBinding?.tvModDetails?.text = messageBuilder.toString()
@@ -247,7 +236,7 @@ class ModsAdapter(private val mods: List<ModInfo>, private val context: Context)
         }
 
         dialogBinding?.yes?.setOnClickListener {
-            ModManager.removeEFMod(context, mod.filePath, mod.runtime, mod.identifier)
+            ModManager.removeEFMod(context, mod.filePath, mod.identifier)
             Toast.makeText(context, context.getString(R.string.removeEFMod), Toast.LENGTH_LONG).show()
             dialog.dismiss()
         }
@@ -258,28 +247,6 @@ class ModsAdapter(private val mods: List<ModInfo>, private val context: Context)
 
 
         dialog.show()
-    }
-
-
-    private fun extractPageFolder(zipFilePath: String, destinationDir: File) {
-        ZipFile(zipFilePath).use { zip ->
-            zip.entries().asSequence().filter { it.name.startsWith("Page/") }.forEach { entry ->
-                println("Entry: ${entry.name}")
-                val destFile = File(destinationDir, entry.name.removePrefix("Page/"))
-                if (entry.isDirectory) {
-                    destFile.mkdirs()
-                } else {
-                    destFile.parentFile?.mkdirs()
-                    zip.getInputStream(entry).use { input ->
-                        destFile.outputStream().use { output ->
-                            input.copyTo(output)
-                        }
-                    }
-                    // 调试输出
-                    println("Extracted: ${destFile.absolutePath}")
-                }
-            }
-        }
     }
 
 }
