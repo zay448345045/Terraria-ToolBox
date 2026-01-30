@@ -34,7 +34,7 @@ jobs:
           cat <<EOF > build.gradle
           buildscript {
               repositories { google(); mavenCentral() }
-              dependencies { classpath 'com.android.tools.build:gradle:8.14.4' }
+              dependencies { classpath 'com.android.tools.build:gradle:9.0.0' }
           }
           allprojects {
               repositories { google(); mavenCentral() }
