@@ -2,7 +2,11 @@ name: Generate Terraria JP Fake APK
 
 on:
   workflow_dispatch: # 手动触发
-
+    inputs:
+      tag_name:
+        description: '版本标签 (例如: v1.0.0)'
+        required: true
+        default: 'v1.0.0'
 jobs:
   build:
     runs-on: ubuntu-latest
