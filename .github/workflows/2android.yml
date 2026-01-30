@@ -1,0 +1,74 @@
+name: Generate Terraria JP Fake APK
+
+on:
+  workflow_dispatch: # 手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Create Minimal Terraria JP Project
+        run: |
+          # 1. 创建目录结构
+          mkdir -p app/src/main/res/values
+          
+          # 2. 写入特定的 AndroidManifest.xml
+          # 这里使用了 Spike Chunsoft 的包名
+          cat <<EOF > app/src/main/AndroidManifest.xml
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android" 
+              package="jp.co.spike_chunsoft.android.terrariajp">
+              <application 
+                  android:label="Terraria JP (Empty)"
+                  android:icon="@android:mipmap/sym_def_app_icon">
+              </application>
+          </manifest>
+          EOF
+
+          # 3. 基础 build.gradle 配置
+          cat <<EOF > build.gradle
+          buildscript {
+              repositories { google(); mavenCentral() }
+              dependencies { classpath 'com.android.tools.build:gradle:8.14.4' }
+          }
+          allprojects {
+              repositories { google(); mavenCentral() }
+          }
+          EOF
+
+          # 4. 设置关键的 ApplicationId
+          cat <<EOF > app/build.gradle
+          plugins { id 'com.android.application' }
+          android {
+              namespace 'jp.co.spike_chunsoft.android.terrariajp'
+              compileSdk 36
+              defaultConfig {
+                  applicationId "jp.co.spike_chunsoft.android.terrariajp"
+                  minSdk 21
+                  targetSdk 36
+                  versionCode 1
+                  versionName "1.0.0"
+              }
+          }
+          EOF
+
+          # 5. 项目结构声明
+          echo "include ':app'" > settings.gradle
+
+      - name: Build Debug APK
+        run: |
+          chmod +x gradlew || true
+          # 首次运行 Gradle 会自动下载环境
+          gradle assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraria-jp-empty-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+
